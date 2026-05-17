@@ -1,4 +1,6 @@
 """Step 2 of the guided journey: ranked career matches."""
+from html import escape
+
 import streamlit as st
 
 
@@ -61,7 +63,7 @@ def render_match(
             shown = matched[:5]
             extra = len(matched) - len(shown)
             chips_html = '<div class="snm-chips">' + "".join(
-                f'<span class="snm-chip snm-chip--soft">{s}</span>' for s in shown
+                f'<span class="snm-chip snm-chip--soft">{escape(s)}</span>' for s in shown
             )
             if extra > 0:
                 chips_html += f'<span class="snm-chip snm-chip--soft">+{extra} more</span>'
@@ -71,7 +73,7 @@ def render_match(
             f"""
             <div class="snm-card {card_cls}">
               <div class="snm-card-header">
-                <div class="snm-card-title">{medal} &nbsp; {career}</div>
+                <div class="snm-card-title">{medal} &nbsp; {escape(career)}</div>
                 <span class="snm-badge {badge_cls}">{badge_text}</span>
               </div>
               <div class="snm-card-meta">Your matching skills</div>
@@ -81,7 +83,7 @@ def render_match(
             unsafe_allow_html=True,
         )
 
-        if st.button(f"See plan for {career} →", key=f"plan_{career}"):
+        if st.button(f"See plan for {career} →", key=f"plan_{i}_{career}"):
             st.session_state.selected_career = career
             st.session_state.step = "plan"
             st.rerun()
