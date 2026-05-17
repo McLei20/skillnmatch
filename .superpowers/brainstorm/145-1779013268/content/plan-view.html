@@ -1,0 +1,66 @@
+<h2>Step 3: How should the "Plan" screen be organized?</h2>
+<p class="subtitle">This screen merges three current pieces: skills to learn (Tab 2), soft skills (Tab 2 bottom), and in-demand skills for the chosen career (Tab 3). It's the densest screen — pick the layout.</p>
+
+<div class="cards">
+  <div class="card" data-choice="stacked" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#1e1e2e;font-size:9px">
+      <div style="background:#2a2a3e;padding:6px;border-radius:4px;margin-bottom:6px">
+        <div style="color:#7c3aed;font-size:10px;font-weight:bold;margin-bottom:3px">⭐ Skills to learn</div>
+        <div style="color:#fff">tensorflow · pytorch · aws · spark</div>
+      </div>
+      <div style="background:#2a2a3e;padding:6px;border-radius:4px;margin-bottom:6px">
+        <div style="color:#f59e0b;font-size:10px;font-weight:bold;margin-bottom:3px">🤝 Soft skills wanted</div>
+        <div style="color:#fff">communication · teamwork · problem solving</div>
+      </div>
+      <div style="background:#2a2a3e;padding:6px;border-radius:4px">
+        <div style="color:#10b981;font-size:10px;font-weight:bold;margin-bottom:3px">📊 What's in demand</div>
+        <div style="color:#fff">Python — 87% of jobs<br/>SQL — 79%<br/>ML — 71%</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Stacked Sections</h3>
+      <p>One long scroll: <strong>Skills to learn</strong> first (primary), then <strong>Soft skills</strong>, then <strong>What's in demand</strong>. Simple, no sub-navigation. Easy to skim top-to-bottom but can feel long.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="two-column" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#1e1e2e;font-size:9px">
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:6px;margin-bottom:6px">
+        <div style="background:#2a2a3e;padding:6px;border-radius:4px">
+          <div style="color:#7c3aed;font-size:9px;font-weight:bold;margin-bottom:3px">⭐ SKILLS TO LEARN</div>
+          <div style="color:#fff;font-size:9px">tensorflow ★★★<br/>pytorch ★★★<br/>aws ★★<br/>spark ★★</div>
+        </div>
+        <div style="background:#2a2a3e;padding:6px;border-radius:4px">
+          <div style="color:#10b981;font-size:9px;font-weight:bold;margin-bottom:3px">📊 IN DEMAND</div>
+          <div style="color:#fff;font-size:9px">Python 87%<br/>SQL 79%<br/>ML 71%</div>
+        </div>
+      </div>
+      <div style="background:#2a2a3e;padding:6px;border-radius:4px">
+        <div style="color:#f59e0b;font-size:9px;font-weight:bold;margin-bottom:3px">🤝 SOFT SKILLS</div>
+        <div style="color:#fff;font-size:9px">communication · teamwork · problem solving</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Two-Column + Soft Skills Below</h3>
+      <p>Top row: <strong>Skills to learn</strong> (left, wider) + <strong>In-demand</strong> (right, sidebar context). <strong>Soft skills</strong> as a band below. Cross-references at a glance — user can see "this skill I should learn IS in demand."</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="subtabs" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#1e1e2e;font-size:9px">
+      <div style="background:#2a2a3e;padding:8px;border-radius:6px;margin-bottom:4px">
+        <div style="color:#fff;font-size:10px;font-weight:bold;margin-bottom:6px">Data Scientist plan</div>
+        <div style="display:flex;gap:3px;margin-bottom:6px">
+          <span style="background:#7c3aed;color:#fff;padding:2px 7px;border-radius:4px;font-size:9px">Learn</span>
+          <span style="background:#3a3a4e;color:#aaa;padding:2px 7px;border-radius:4px;font-size:9px">Soft Skills</span>
+          <span style="background:#3a3a4e;color:#aaa;padding:2px 7px;border-radius:4px;font-size:9px">Market</span>
+        </div>
+        <div style="color:#fff">tensorflow ★★★<br/>pytorch ★★★<br/>aws ★★</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Sub-Tabs Within Plan</h3>
+      <p>Plan screen has 3 sub-tabs: <strong>Learn</strong> / <strong>Soft Skills</strong> / <strong>Market</strong>. Compact, single section visible at a time. Cleanest but hides context (user has to click to discover soft skills + demand exist).</p>
+    </div>
+  </div>
+</div>

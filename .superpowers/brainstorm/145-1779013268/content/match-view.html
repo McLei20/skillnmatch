@@ -1,0 +1,85 @@
+<h2>Step 2: How should the career matches appear?</h2>
+<p class="subtitle">After "Discover", users see careers ranked by their skills. They'll click one to advance to Step 3 (Plan). Pick a presentation style.</p>
+
+<div class="cards">
+  <div class="card" data-choice="ranked-cards" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#1e1e2e;font-size:10px">
+      <div style="background:#2a2a3e;padding:8px;border-radius:6px;margin-bottom:6px;border-left:3px solid #10b981">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div style="color:#fff;font-weight:bold;font-size:11px">🥇 Data Scientist</div>
+          <span style="background:#10b981;color:#fff;padding:2px 6px;border-radius:8px;font-size:8px">GREAT MATCH</span>
+        </div>
+        <div style="color:#888;font-size:9px;margin-bottom:4px">Your matching skills:</div>
+        <div style="display:flex;gap:2px;flex-wrap:wrap">
+          <span style="background:#3a3a4e;color:#fff;padding:1px 5px;border-radius:6px;font-size:8px">python</span>
+          <span style="background:#3a3a4e;color:#fff;padding:1px 5px;border-radius:6px;font-size:8px">sql</span>
+        </div>
+      </div>
+      <div style="background:#2a2a3e;padding:8px;border-radius:6px;margin-bottom:6px;border-left:3px solid #3b82f6">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="color:#fff;font-size:10px">🥈 Data Engineer</div>
+          <span style="background:#3b82f6;color:#fff;padding:2px 6px;border-radius:8px;font-size:8px">GOOD MATCH</span>
+        </div>
+      </div>
+      <div style="background:#2a2a3e;padding:8px;border-radius:6px;border-left:3px solid #f59e0b">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="color:#fff;font-size:10px">🥉 ML Engineer</div>
+          <span style="background:#f59e0b;color:#fff;padding:2px 6px;border-radius:8px;font-size:8px">FAIR MATCH</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Ranked Cards (all equal)</h3>
+      <p>Each of the top 5 careers is a card of similar size, ranked vertically with medal + match badge + matched skills preview. Click any card to advance. Even weight — encourages comparison.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="hero-alternatives" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#1e1e2e;font-size:10px">
+      <div style="background:linear-gradient(135deg,#7c3aed,#2563eb);padding:12px;border-radius:8px;margin-bottom:6px">
+        <div style="color:#fff;font-size:9px;opacity:0.8">🥇 YOUR BEST MATCH</div>
+        <div style="color:#fff;font-size:13px;font-weight:bold;margin:2px 0">Data Scientist</div>
+        <div style="color:#fff;font-size:8px;opacity:0.9;margin-bottom:6px">Great match — 2 of your skills align</div>
+        <div style="background:rgba(255,255,255,0.2);padding:3px 6px;border-radius:4px;font-size:8px;color:#fff;text-align:center">See your learning plan →</div>
+      </div>
+      <div style="color:#888;font-size:8px;margin-bottom:4px">OTHER MATCHES</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div style="background:#2a2a3e;padding:5px;border-radius:4px;color:#fff;font-size:8px">🥈 Data Engineer<br/><span style="color:#888">Good</span></div>
+        <div style="background:#2a2a3e;padding:5px;border-radius:4px;color:#fff;font-size:8px">🥉 ML Engineer<br/><span style="color:#888">Fair</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Hero + Alternatives</h3>
+      <p>The #1 match gets a big colorful hero card with the primary "See plan" CTA. Other matches are smaller cards below. Most decisive feel — pushes user toward the best match, but alternatives still discoverable.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="comparison-grid" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:14px;background:#1e1e2e;font-size:9px">
+      <div style="color:#888;font-size:8px;margin-bottom:4px">COMPARE YOUR TOP MATCHES</div>
+      <table style="width:100%;border-collapse:collapse;color:#fff">
+        <tr style="border-bottom:1px solid #3a3a4e">
+          <td style="padding:3px;font-weight:bold">Data Scientist</td>
+          <td style="padding:3px"><div style="height:6px;width:90%;background:#10b981;border-radius:3px"></div></td>
+        </tr>
+        <tr style="border-bottom:1px solid #3a3a4e">
+          <td style="padding:3px">Data Engineer</td>
+          <td style="padding:3px"><div style="height:6px;width:65%;background:#3b82f6;border-radius:3px"></div></td>
+        </tr>
+        <tr style="border-bottom:1px solid #3a3a4e">
+          <td style="padding:3px">ML Engineer</td>
+          <td style="padding:3px"><div style="height:6px;width:45%;background:#f59e0b;border-radius:3px"></div></td>
+        </tr>
+        <tr>
+          <td style="padding:3px">Backend Dev</td>
+          <td style="padding:3px"><div style="height:6px;width:30%;background:#f59e0b;border-radius:3px"></div></td>
+        </tr>
+      </table>
+      <div style="margin-top:6px;text-align:center;background:#7c3aed;color:#fff;padding:4px;border-radius:4px;font-size:9px">Click a row to plan →</div>
+    </div>
+    <div class="card-body">
+      <h3>C. Comparison Bar Chart</h3>
+      <p>Horizontal bars show relative match strength side-by-side. Click any row to advance. Best for analytical users who want to see the gap between matches. Reuses Plotly-style visualization — feels native to a data app.</p>
+    </div>
+  </div>
+</div>
