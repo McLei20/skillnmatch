@@ -5,6 +5,7 @@ import ast
 import sys
 sys.path.append('src')
 from recommender import load_rules, load_frequencies, load_soft_rules, recommend_skills, recommend_soft_skills, get_skills_from_rules, get_all_skills, recommend_careers
+from src.ui.theme import inject_css
 
 
 # Load data and rules
@@ -13,6 +14,8 @@ df['IT Skills'] = df['IT Skills'].apply(ast.literal_eval)
 all_rules = load_rules()
 all_freq = load_frequencies()
 all_soft_rules = load_soft_rules()
+
+inject_css()
 
 # Title
 st.title("SkillNMatch")
