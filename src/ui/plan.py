@@ -1,18 +1,17 @@
 """Step 3 of the guided journey: combined learning plan for a selected career."""
 from html import escape
 
-import pandas as pd
 import plotly.express as px
 import streamlit as st
 
 
-def _learn_tier(lift: float) -> tuple[str, str]:
-    """Return (label, css_class_suffix) for a skill-recommendation lift score."""
+def _learn_tier(lift: float) -> str:
+    """Return the label for a skill-recommendation lift score."""
     if lift >= 2.0:
-        return "★★★ Highly Recommended", "snm-chip--selected"
+        return "★★★ Highly Recommended"
     if lift >= 1.5:
-        return "★★ Recommended", "snm-chip--selected"
-    return "★ Consider Learning", "snm-chip--soft"
+        return "★★ Recommended"
+    return "★ Consider Learning"
 
 
 def _soft_tier(lift: float) -> str:
@@ -63,7 +62,7 @@ def render_plan(
                 st.caption("You already have most of the recommended skills for this career!")
             else:
                 for r in recs:
-                    label, _ = _learn_tier(r["lift"])
+                    label = _learn_tier(r["lift"])
                     skill = r["skill"].title()
                     st.markdown(
                         f'<div class="snm-chip snm-chip--selected" style="display:inline-block;margin:4px 4px 4px 0">{escape(skill)} &nbsp;·&nbsp; {label}</div>',
