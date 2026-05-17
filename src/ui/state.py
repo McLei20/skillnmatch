@@ -1,14 +1,8 @@
 """Session state shape and navigation guards for the guided journey."""
-from typing import TypedDict, Any
+from typing import Any
 
 
 STEPS = ["discover", "match", "plan"]
-
-
-class JourneyState(TypedDict):
-    step: str
-    selected_skills: set[str]
-    selected_career: str | None
 
 
 def default_state() -> dict[str, Any]:
