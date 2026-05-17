@@ -3,43 +3,11 @@ import streamlit as st
 _CSS = """
 <style>
 /* Stepper */
-.snm-stepper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 0;
-    margin-bottom: 24px;
-    position: sticky;
-    top: 0;
-    background: #0f1419;
-    z-index: 100;
-    border-bottom: 1px solid #1a2333;
-}
-.snm-step {
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid #2a3a4f;
-    color: #8a9aab;
-    background: transparent;
-}
-.snm-step--active {
-    background: #14b8a6;
-    color: #0f1419;
-    border-color: #14b8a6;
-}
-.snm-step--past {
-    border-color: #14b8a6;
-    color: #14b8a6;
-}
-.snm-step--locked {
-    color: #4a5a6b;
-}
 .snm-step-divider {
     flex: 0 0 24px;
     height: 1px;
     background: #2a3a4f;
+    margin: 0 auto;
 }
 
 /* Chips */
