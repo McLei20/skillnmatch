@@ -61,15 +61,19 @@ def render_discover(all_skills: list[str]) -> None:
 
     st.markdown("---")
 
-    # --- Category filter pills ---
+    # --- Category filter ---
     st.markdown('<div class="snm-section-label">Browse by category</div>', unsafe_allow_html=True)
-    cat_cols = st.columns(len(CATEGORY_ORDER))
-    for i, cat in enumerate(CATEGORY_ORDER):
-        is_active = cat == st.session_state.active_category
-        label = f"● {cat}" if is_active else cat
-        if cat_cols[i].button(label, key=f"cat_{cat}", use_container_width=True):
-            st.session_state.active_category = cat
-            st.rerun()
+    picked = st.radio(
+        "Category",
+        CATEGORY_ORDER,
+        index=CATEGORY_ORDER.index(st.session_state.active_category),
+        horizontal=True,
+        label_visibility="collapsed",
+        key="discover_category_radio",
+    )
+    if picked != st.session_state.active_category:
+        st.session_state.active_category = picked
+        st.rerun()
 
     # --- Chip grid for active category ---
     cat_skills = get_skills_by_category(st.session_state.active_category, all_skills)
