@@ -84,6 +84,7 @@ def render_plan(
             )
             fig.update_layout(
                 xaxis_title="% of postings", yaxis_title="",
+                xaxis_tickformat=".0%",
                 coloraxis_showscale=False,
                 template="plotly_dark",
                 margin=dict(l=0, r=10, t=10, b=30),

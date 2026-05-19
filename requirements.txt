@@ -4,4 +4,4 @@ mlxtend==0.24.0
 scikit-learn==1.8.0
 matplotlib==3.10.8
 numpy==2.4.1
-pyvis==0.3.2
+plotly==6.6.0

@@ -36,7 +36,7 @@ def render_discover(all_skills: list[str]) -> None:
                 col = cols[i % len(cols)]
                 already = skill in st.session_state.selected_skills
                 if col.button(
-                    ("✓ " if already else "+ ") + skill,
+                    f"✓ {skill}" if already else skill,
                     key=f"search_add_{skill}",
                     disabled=already,
                 ):
@@ -84,7 +84,7 @@ def render_discover(all_skills: list[str]) -> None:
         for i, skill in enumerate(cat_skills):
             col = grid_cols[i % 4]
             already = skill in st.session_state.selected_skills
-            label = f"✓ {skill}" if already else f"+ {skill}"
+            label = f"✓ {skill}" if already else skill
             if col.button(label, key=f"grid_{skill}", use_container_width=True):
                 if already:
                     st.session_state.selected_skills.discard(skill)

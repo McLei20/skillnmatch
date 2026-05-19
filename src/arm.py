@@ -1,9 +1,42 @@
 import pandas as pd
 import ast
+from collections import Counter
 from mlxtend.preprocessing import TransactionEncoder
-from mlxtend.frequent_patterns import apriori, association_rules
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 import pickle
+
+
+def compute_adaptive_minsup(transactions: list) -> float:
+    """
+    Adaptive minimum support based on dataset characteristics.
+    Source: Hikmawati, Maulidevi & Surendro (2021), Journal of Big Data.
+    DOI: 10.1186/s40537-021-00538-3
+
+    Formula: minsup = (average item utility) / total_transactions
+    where utility = support × 1 (no external criteria)
+    """
+    total_transactions = len(transactions)
+    if total_transactions == 0:
+        return 0.05  # fallback
+
+    item_counts = Counter(item for transaction in transactions for item in transaction)
+    total_items = len(item_counts)
+
+    if total_items == 0:
+        return 0.05  # fallback
+
+    # Step 1 & 2: support × utility(=1) per item
+    utilities = [count / total_transactions for count in item_counts.values()]
+    # Step 3: average utility
+    avesup = sum(utilities) / total_items
+    # Step 4: minsup = avesup / total_transactions
+    minsup = avesup / total_transactions
+
+    # Clamp to [0.05, 0.2]. The paper assumes |D| >> |N| (typical POS retail).
+    # Our shape is the opposite (|N| > |D|), so `avesup / |D|` produces values <<0.05
+    # for every career and the floor binds. The formula is preserved for methodological
+    # consistency with the cited source, but in practice minsup == 0.05 for all careers.
+    return max(0.05, min(0.2, minsup))
 
 # Step 1: Load cleaned data
 df = pd.read_csv("data/cleaned_jobs.csv")
@@ -24,8 +57,10 @@ for career in df['Query'].unique():
     te_array = te.fit_transform(filtered)
     encoded_df = pd.DataFrame(te_array, columns=te.columns_)
 
-    # Run Apriori
-    frequent_itemsets = fpgrowth(encoded_df, min_support=0.05, use_colnames=True)
+    # Run FP-Growth with adaptive minimum support (Hikmawati et al. 2021)
+    adaptive_minsup = compute_adaptive_minsup(filtered)
+    frequent_itemsets = fpgrowth(encoded_df, min_support=adaptive_minsup, use_colnames=True)
+    print(f"  adaptive minsup: {adaptive_minsup:.4f}")
 
     # Skip if no frequent itemsets found
     if len(frequent_itemsets) == 0:
@@ -75,7 +110,9 @@ for career in df_soft['Query'].unique():
     te_array = te.fit_transform(filtered)
     encoded_df = pd.DataFrame(te_array, columns=te.columns_)
 
-    frequent_itemsets = fpgrowth(encoded_df, min_support=0.05, use_colnames=True)
+    adaptive_minsup = compute_adaptive_minsup(filtered)
+    frequent_itemsets = fpgrowth(encoded_df, min_support=adaptive_minsup, use_colnames=True)
+    print(f"  adaptive minsup: {adaptive_minsup:.4f}")
 
     if len(frequent_itemsets) == 0:
         continue
