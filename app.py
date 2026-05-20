@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 sys.path.append('src')
 
-from recommender import (
+from src.recommender import (
     load_rules, load_frequencies, load_soft_rules,
     recommend_skills, recommend_soft_skills, recommend_careers,
     get_skills_from_rules, get_all_skills,

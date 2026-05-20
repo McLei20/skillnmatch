@@ -53,7 +53,25 @@ def recommend_skills(user_skills, career, all_rules, top_n=10):
 
 
 
-def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20):
+def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20, weights=(1/3, 1/3, 1/3)):
+    """Rank careers by how well a user's skills match each career's ARM rules.
+
+    Weighting: the three metrics (avg_confidence, match_count_norm, lift_norm)
+    are combined with EQUAL weights by default. No labeled ground truth exists
+    to optimize weights against, so unequal weights would impose arbitrary
+    researcher bias. Equal (unit) weighting is the established neutral baseline
+    in multi-criteria decision analysis, robust under small samples and
+    correlated criteria (Dawes 1979, American Psychologist 34(7):571-582). The
+    `weights` argument lets sensitivity_analysis() re-score under alternative
+    weightings to confirm the ranking is not an artifact of this choice
+    (standard MCDA robustness check; Wieckowski & Salabun 2023). Weights are
+    normalized to sum to 1, so the default (1/3,1/3,1/3) sums to exactly 1.0 --
+    avoiding the rounding error of 0.33 + 0.33 + 0.33 = 0.99.
+    """
+    w_conf, w_match, w_lift = weights
+    w_total = w_conf + w_match + w_lift
+    w_conf, w_match, w_lift = w_conf / w_total, w_match / w_total, w_lift / w_total
+
     user_set = set(user_skills)
     career_scores = {}
     
@@ -78,11 +96,58 @@ def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20):
         match_count_norm = len(matching) / total_rules
         lift_norm = ((matching['lift'] - 1) / (max_lift - 1)).mean()
         
-        score = (avg_confidence * 0.33) + (match_count_norm * 0.33) + (lift_norm * 0.33)
+        score = (avg_confidence * w_conf) + (match_count_norm * w_match) + (lift_norm * w_lift)
         career_scores[career] = round(score, 4)
     
     ranked = sorted(career_scores.items(), key=lambda x: x[1], reverse=True)
     return ranked[:top_n]
+
+def sensitivity_analysis(user_skills, all_rules, top_n=5):
+    """Test whether career rankings depend on the choice of metric weights.
+
+    Re-runs recommend_careers() under several weightings and reports how stable
+    the top-N ranking is. Stability across very different weightings shows the
+    result is not an artifact of the (unavoidably arbitrary) weight choice --
+    the standard robustness argument in multi-criteria decision analysis
+    (Wieckowski & Salabun 2023; Demir et al. 2024).
+    """
+    import pandas as pd
+
+    scenarios = {
+        "Equal (baseline)":    (1/3, 1/3, 1/3),
+        "Confidence-heavy":    (0.60, 0.20, 0.20),
+        "Match-heavy":         (0.20, 0.60, 0.20),
+        "Lift-heavy":          (0.20, 0.20, 0.60),
+        "Prior (0.6/0.1/0.3)": (0.60, 0.10, 0.30),
+    }
+
+    results = {
+        name: recommend_careers(user_skills, all_rules, top_n=top_n, weights=w)
+        for name, w in scenarios.items()
+    }
+
+    table = {}
+    for name, ranked in results.items():
+        col = [c for c, _ in ranked]
+        col += ["-"] * (top_n - len(col))
+        table[name] = col
+    df = pd.DataFrame(table, index=[f"#{i+1}" for i in range(top_n)])
+
+    baseline = [c for c, _ in results["Equal (baseline)"]]
+    print(f"\nSensitivity analysis -- skills: {sorted(set(user_skills))}")
+    print(df.to_string())
+
+    print("\nStability vs Equal baseline:")
+    for name, ranked in results.items():
+        if name == "Equal (baseline)":
+            continue
+        careers = [c for c, _ in ranked]
+        top1_same = careers[:1] == baseline[:1]
+        overlap = len(set(careers) & set(baseline))
+        print(f"  {name:<22} top-1 same: {str(top1_same):<5}  overlap top-{top_n}: {overlap}/{top_n}")
+
+    return results
+
 
 def recommend_soft_skills(career, all_soft_rules, top_n=5):
     if career not in all_soft_rules:
@@ -136,7 +201,7 @@ if __name__ == "__main__":
     avg_confidence = matching['confidence'].mean()
     match_count_norm = len(matching) / len(rules)
     lift_norm = ((matching['lift'] - 1) / (max_lift - 1)).mean()
-    score = (avg_confidence * 0.33) + (match_count_norm * 0.33) + (lift_norm * 0.33)
+    score = (avg_confidence + match_count_norm + lift_norm) / 3
     print(f"Data Scientist matching: {len(matching)}")
     print(f"Data Scientist score: {round(score, 4)}")
     
@@ -145,5 +210,8 @@ if __name__ == "__main__":
     career_results = recommend_careers(user_skills, all_rules)
     for career, score in career_results:
         print(f"{career}: {score}")
-    
+
     print(len(get_all_skills(all_rules)))
+
+    print()
+    sensitivity_analysis(user_skills, all_rules)

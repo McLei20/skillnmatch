@@ -6,10 +6,12 @@ Run from project root:
 Use the output to extend SKILL_CATEGORIES in src/ui/skill_categories.py.
 """
 import sys
-sys.path.insert(0, "src")
+from pathlib import Path
 
-from recommender import load_rules, get_all_skills
-from ui.skill_categories import get_uncategorized_skills
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from src.recommender import load_rules, get_all_skills
+from src.ui.skill_categories import get_uncategorized_skills
 
 
 def main() -> None:

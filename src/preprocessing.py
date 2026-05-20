@@ -2,7 +2,7 @@ import pandas as pd
 import re
 
 #Load the data
-df = pd.read_csv("data\JobsDatasetProcessed.csv")
+df = pd.read_csv("data/JobsDatasetProcessed.csv")
 
 #Exploring Data
 df.info()
