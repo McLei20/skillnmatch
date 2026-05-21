@@ -7,14 +7,6 @@ import pickle
 
 
 def compute_adaptive_minsup(transactions: list) -> float:
-    """
-    Adaptive minimum support based on dataset characteristics.
-    Source: Hikmawati, Maulidevi & Surendro (2021), Journal of Big Data.
-    DOI: 10.1186/s40537-021-00538-3
-
-    Formula: minsup = (average item utility) / total_transactions
-    where utility = support × 1 (no external criteria)
-    """
     total_transactions = len(transactions)
     if total_transactions == 0:
         return 0.05  # fallback
@@ -32,10 +24,6 @@ def compute_adaptive_minsup(transactions: list) -> float:
     # Step 4: minsup = avesup / total_transactions
     minsup = avesup / total_transactions
 
-    # Clamp to [0.05, 0.2]. The paper assumes |D| >> |N| (typical POS retail).
-    # Our shape is the opposite (|N| > |D|), so `avesup / |D|` produces values <<0.05
-    # for every career and the floor binds. The formula is preserved for methodological
-    # consistency with the cited source, but in practice minsup == 0.05 for all careers.
     return max(0.05, min(0.2, minsup))
 
 # Step 1: Load cleaned data

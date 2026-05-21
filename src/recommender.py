@@ -52,6 +52,36 @@ def recommend_skills(user_skills, career, all_rules, top_n=10):
     return recommendations[:top_n]
 
 
+def recommend_role_skills(career, user_skills, all_rules, top_n=10):
+    """Rank skills by how strongly this role's rules point at them.
+
+    For every single-consequent rule in the career, take the consequent's
+    highest lift across all such rules. Filter out skills the user already
+    has, sort by max lift descending, return the top N.
+
+    This answers "what does this role need?" -- independent of which rule
+    antecedents the user happens to match.
+    """
+    if career not in all_rules:
+        return []
+
+    rules = all_rules[career]
+    user_set = set(user_skills)
+    skill_to_max_lift: dict[str, float] = {}
+
+    for _, row in rules.iterrows():
+        if len(row['consequents']) != 1:
+            continue
+        skill = list(row['consequents'])[0]
+        if skill in user_set:
+            continue
+        lift = float(row['lift'])
+        if skill not in skill_to_max_lift or lift > skill_to_max_lift[skill]:
+            skill_to_max_lift[skill] = lift
+
+    ranked = sorted(skill_to_max_lift.items(), key=lambda x: x[1], reverse=True)
+    return [{"skill": s, "lift": l} for s, l in ranked[:top_n]]
+
 
 def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20, weights=(1/3, 1/3, 1/3)):
     """Rank careers by how well a user's skills match each career's ARM rules.

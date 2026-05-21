@@ -2,12 +2,13 @@ import streamlit as st
 
 _CSS = """
 <style>
-/* Stepper */
-.snm-step-divider {
-    flex: 0 0 24px;
-    height: 1px;
-    background: #2a3a4f;
+/* Constrain the main content width so a 'wide' layout still feels framed. */
+.main .block-container,
+[data-testid="stMainBlockContainer"] {
+    max-width: 980px;
     margin: 0 auto;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
 }
 
 /* Chips */
