@@ -5,51 +5,9 @@ def load_rules(path='data/arm_rules.pkl'):
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def load_frequencies(path='data/arm_freq.pkl'):
-    with open(path, 'rb') as f:
-        return pickle.load(f)
-
 def load_soft_rules(path='data/soft_rules.pkl'):
     with open(path, 'rb') as f:
         return pickle.load(f)
-
-def recommend_skills(user_skills, career, all_rules, top_n=10):
-    # Check if career has rules
-    if career not in all_rules:
-        return []
-    
-    rules = all_rules[career]
-    user_set = set(user_skills)
-    
-    # Step 1: Find rules where antecedent is subset of user skills
-    matching = rules[rules['antecedents'].apply(
-        lambda x: x <= user_set
-    )]
-    
-    # Step 2 & 3: Get consequents, remove skills user already has
-    recommendations = []
-    for _, row in matching.iterrows():
-        skill = list(row['consequents'])[0]
-        if skill not in user_set:
-            recommendations.append({
-                'skill': skill,
-                'confidence': row['confidence'],
-                'lift': row['lift']
-            })
-
-    seen = {}
-    for r in recommendations:
-        skill = r['skill']
-        if skill not in seen or r['lift'] > seen[skill]['lift']:
-            seen[skill] = r
-    # Convert back to list
-    recommendations = list(seen.values())
-    
-    # Step 4: Sort by lift
-    recommendations = sorted(recommendations, key=lambda x: x['lift'], reverse=True)
-    
-    # Step 5: Return top N
-    return recommendations[:top_n]
 
 
 def recommend_role_skills(career, user_skills, all_rules, top_n=10):
@@ -85,18 +43,6 @@ def recommend_role_skills(career, user_skills, all_rules, top_n=10):
 
 def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20, weights=(1/3, 1/3, 1/3)):
     """Rank careers by how well a user's skills match each career's ARM rules.
-
-    Weighting: the three metrics (avg_confidence, match_count_norm, lift_norm)
-    are combined with EQUAL weights by default. No labeled ground truth exists
-    to optimize weights against, so unequal weights would impose arbitrary
-    researcher bias. Equal (unit) weighting is the established neutral baseline
-    in multi-criteria decision analysis, robust under small samples and
-    correlated criteria (Dawes 1979, American Psychologist 34(7):571-582). The
-    `weights` argument lets sensitivity_analysis() re-score under alternative
-    weightings to confirm the ranking is not an artifact of this choice
-    (standard MCDA robustness check; Wieckowski & Salabun 2023). Weights are
-    normalized to sum to 1, so the default (1/3,1/3,1/3) sums to exactly 1.0 --
-    avoiding the rounding error of 0.33 + 0.33 + 0.33 = 0.99.
     """
     w_conf, w_match, w_lift = weights
     w_total = w_conf + w_match + w_lift
@@ -134,12 +80,6 @@ def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20, weights=(1/
 
 def sensitivity_analysis(user_skills, all_rules, top_n=5):
     """Test whether career rankings depend on the choice of metric weights.
-
-    Re-runs recommend_careers() under several weightings and reports how stable
-    the top-N ranking is. Stability across very different weightings shows the
-    result is not an artifact of the (unavoidably arbitrary) weight choice --
-    the standard robustness argument in multi-criteria decision analysis
-    (Wieckowski & Salabun 2023; Demir et al. 2024).
     """
     import pandas as pd
 
