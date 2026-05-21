@@ -1,136 +1,142 @@
-import pickle
+import json
 
-# ====================== RECOMMENDATION THRESHOLDS ======================
-RECOMMENDATION_LIFT = 1.5      # Strong rules shown to users (standard in ARM)
+import pandas as pd
 
-# =======================================================================
-
-def load_rules(path='data/arm_rules.pkl'):
-    """Load pre-mined IT skill association rules."""
-    with open(path, 'rb') as f:
-        return pickle.load(f)
+# ====================== SETTINGS ======================
+RECOMMENDATION_LIFT = 1.5   # Only show strong recommendations (Lift >= 1.5)
+# =====================================================
 
 
-def load_soft_rules(path='data/soft_rules.pkl'):
-    """Load pre-mined soft skill association rules."""
-    with open(path, 'rb') as f:
-        return pickle.load(f)
+def _load_rules_json(path: str) -> dict:
+    """Read a rules JSON file and rebuild {career: DataFrame} with frozenset itemset columns."""
+    with open(path, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
+    out = {}
+    for career, rows in raw.items():
+        df = pd.DataFrame(rows)
+        if not df.empty:
+            df['antecedents'] = df['antecedents'].apply(frozenset)
+            df['consequents'] = df['consequents'].apply(frozenset)
+        out[career] = df
+    return out
 
 
-def load_frequencies(path='data/arm_freq.pkl'):
-    """Load skill frequency data (for 'In Demand' chart)."""
-    with open(path, 'rb') as f:
-        return pickle.load(f)
+def load_rules(path='data/arm_rules.json'):
+    """Load the main IT skill rules (created by arm.py)"""
+    return _load_rules_json(path)
 
 
-def recommend_role_skills(career, user_skills, all_rules, top_n=10):
-    """
-    Recommend skills for a specific career.
-    Only returns strong rules (Lift >= 1.5).
-    """
+def load_soft_rules(path='data/soft_rules.json'):
+    """Load the soft skills rules"""
+    return _load_rules_json(path)
+
+
+# ===================================================================
+# 1. Recommend Skills to Learn for a Specific Career
+# ===================================================================
+def recommend_skills(career, user_skills, all_rules, top_n=10):
+    """Recommend new skills the user should learn for a career."""
     if career not in all_rules:
         return []
 
     rules = all_rules[career]
     user_set = set(user_skills)
-    skill_to_max_lift = {}
+    recommendations = {}
 
     for _, row in rules.iterrows():
-        if len(row['consequents']) != 1:
+        if len(row['consequents']) != 1:        # Only single skill recommendations
             continue
-
+            
         skill = list(row['consequents'])[0]
-        if skill in user_set:
+        
+        if skill in user_set:                   # Skip skills user already has
             continue
-
+            
         lift = float(row['lift'])
-        if lift < RECOMMENDATION_LIFT:
+        if lift < RECOMMENDATION_LIFT:          # Only strong rules
             continue
+            
+        # Keep the best (highest) lift for each skill
+        if skill not in recommendations or lift > recommendations[skill]:
+            recommendations[skill] = lift
 
-        # Keep the highest lift for each skill
-        if skill not in skill_to_max_lift or lift > skill_to_max_lift[skill]:
-            skill_to_max_lift[skill] = lift
-
-    # Sort by lift descending
-    ranked = sorted(skill_to_max_lift.items(), key=lambda x: x[1], reverse=True)
-
-    return [{"skill": s, "lift": l} for s, l in ranked[:top_n]]
+    # Sort by lift (strongest first) and return top N
+    sorted_recs = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
+    
+    return [{"skill": skill, "lift": lift} for skill, lift in sorted_recs[:top_n]]
 
 
-def recommend_careers(user_skills, all_rules, top_n=5, min_rules=20, weights=(1/3, 1/3, 1/3)):
-    """Rank careers based on how well user's skills match each career's rules."""
-    w_conf, w_match, w_lift = weights
-    w_total = w_conf + w_match + w_lift
-    w_conf = w_conf / w_total
-    w_match = w_match / w_total
-    w_lift = w_lift / w_total
-
+# ===================================================================
+# 2. Recommend Careers
+# ===================================================================
+def recommend_careers(user_skills, all_rules, top_n=5):
+    """Rank careers based on user's current skills."""
     user_set = set(user_skills)
     career_scores = {}
 
     for career, rules in all_rules.items():
-        if len(rules) < min_rules:
-            continue
-
+        # Find rules where user has all required skills
         matching = rules[rules['antecedents'].apply(lambda x: x <= user_set)]
-
+        
         if len(matching) == 0:
             continue
 
-        max_lift = rules['lift'].max()
-        total_rules = len(rules)
-
+        # Simple score: average of confidence and lift
         avg_confidence = matching['confidence'].mean()
-        match_count_norm = len(matching) / total_rules
-        lift_norm = ((matching['lift'] - 1) / (max_lift - 1)).mean()
-
-        score = (avg_confidence * w_conf) + (match_count_norm * w_match) + (lift_norm * w_lift)
+        avg_lift = matching['lift'].mean()
+        
+        # Combined score
+        score = (avg_confidence + avg_lift) / 2
         career_scores[career] = round(score, 4)
 
+    # Return top careers
     ranked = sorted(career_scores.items(), key=lambda x: x[1], reverse=True)
     return ranked[:top_n]
 
 
+# ===================================================================
+# 3. Recommend Soft Skills
+# ===================================================================
 def recommend_soft_skills(career, all_soft_rules, top_n=5):
-    """Recommend soft skills for a career using strong rules only."""
+    """Recommend soft skills for a career."""
     if career not in all_soft_rules:
         return []
 
     rules = all_soft_rules[career]
-    rules = rules[rules['lift'] >= RECOMMENDATION_LIFT]   # Strong rules only
+    
+    # Only strong rules
+    strong_rules = rules[rules['lift'] >= RECOMMENDATION_LIFT]
+    top = strong_rules.head(top_n)
 
-    top = rules.head(top_n)
     results = []
-    seen = set()
-
     for _, row in top.iterrows():
         skill = list(row['consequents'])[0]
-        if skill not in seen:
-            results.append({
-                'skill': skill.title(),
-                'lift': float(row['lift'])
-            })
-            seen.add(skill)
-
+        results.append({
+            'skill': skill.title(),
+            'lift': float(row['lift'])
+        })
     return results
 
 
-def get_skills_from_rules(career, all_rules):
-    """Get all skills associated with a career."""
-    if career not in all_rules:
-        return []
-
-    rules = all_rules[career]
-    skills = set()
-    for antecedent in rules['antecedents']:
-        skills.update(antecedent)
-
-    return sorted(list(skills))
-
-
+# ===================================================================
+# Helper Functions
+# ===================================================================
 def get_all_skills(all_rules):
-    """Get every unique skill across all careers."""
+    """Get list of all available skills (used in Discover step)"""
     all_skills = set()
-    for career in all_rules.keys():
-        all_skills.update(get_skills_from_rules(career, all_rules))
+    for rules in all_rules.values():
+        for antecedent in rules['antecedents']:
+            all_skills.update(antecedent)
     return sorted(list(all_skills))
+
+
+# For testing
+if __name__ == "__main__":
+    all_rules = load_rules()
+    user_skills = ['python', 'sql', 'machine learning']
+    
+    print("Top Careers:")
+    print(recommend_careers(user_skills, all_rules))
+    
+    print("\nSkills to learn for Data Scientist:")
+    print(recommend_skills("Data Scientist", user_skills, all_rules))

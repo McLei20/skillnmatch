@@ -4,9 +4,22 @@ sys.path.append('src')
 
 from src.recommender import (
     load_rules, load_soft_rules,
-    recommend_role_skills, recommend_careers,
-    get_skills_from_rules, get_all_skills,
+    recommend_skills, recommend_careers,
+    get_all_skills,
 )
+
+
+def get_skills_from_rules(career, all_rules):
+    """All skills appearing in a career's rules (antecedents + consequents)."""
+    if career not in all_rules:
+        return []
+    skills = set()
+    for _, row in all_rules[career].iterrows():
+        skills.update(row['antecedents'])
+        skills.update(row['consequents'])
+    return sorted(skills)
+
+
 from src.ui.theme import inject_css
 from src.ui.state import default_state
 from src.ui.stepper import render_stepper
@@ -38,7 +51,7 @@ if step == "discover":
 elif step == "match":
     render_match(recommend_careers, get_skills_from_rules, all_rules)
 elif step == "plan":
-    render_plan(recommend_role_skills, all_rules, all_soft_rules)
+    render_plan(recommend_skills, all_rules, all_soft_rules)
 else:
     # Defensive: unknown step — reset to discover.
     st.session_state.step = "discover"

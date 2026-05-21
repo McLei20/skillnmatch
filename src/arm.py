@@ -2,7 +2,21 @@ import pandas as pd
 import ast
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import fpgrowth, association_rules
-import pickle
+import json
+
+
+def _rules_to_jsonable(all_rules: dict) -> dict:
+    """Convert {career: DataFrame} to a JSON-serializable dict.
+
+    Frozensets become sorted lists so the output is stable across runs.
+    """
+    out = {}
+    for career, df in all_rules.items():
+        df = df.copy()
+        df['antecedents'] = df['antecedents'].apply(lambda s: sorted(s))
+        df['consequents'] = df['consequents'].apply(lambda s: sorted(s))
+        out[career] = df.to_dict(orient='records')
+    return out
 
 # ====================== EVALUATION THRESHOLDS ======================
 MIN_SUPPORT = 0.05          # Minimum support (5% of job postings)
@@ -54,10 +68,10 @@ for career in df['Query'].unique():
     print(f"'{career}': {len(rules)} rules generated")
 
 # Save IT Skills rules
-with open('data/arm_rules.pkl', 'wb') as f:
-    pickle.dump(all_rules, f)
+with open('data/arm_rules.json', 'w', encoding='utf-8') as f:
+    json.dump(_rules_to_jsonable(all_rules), f, indent=2)
 
-print("\nAll IT skill rules saved to data/arm_rules.pkl")
+print("\nAll IT skill rules saved to data/arm_rules.json")
 
 # ========================= SOFT SKILLS =========================
 df_soft = pd.read_csv("data/cleaned_soft_skills.csv")
@@ -90,7 +104,7 @@ for career in df_soft['Query'].unique():
     all_soft_rules[career] = rules
     print(f"Soft skills — '{career}': {len(rules)} rules generated")
 
-with open('data/soft_rules.pkl', 'wb') as f:
-    pickle.dump(all_soft_rules, f)
+with open('data/soft_rules.json', 'w', encoding='utf-8') as f:
+    json.dump(_rules_to_jsonable(all_soft_rules), f, indent=2)
 
-print("Soft skill rules saved to data/soft_rules.pkl")
+print("Soft skill rules saved to data/soft_rules.json")
