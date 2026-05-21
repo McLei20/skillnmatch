@@ -1,30 +1,25 @@
+"""Association rule mining for SkillNMatch.
+
+Uses FP-Growth with a flat MIN_SUPPORT = 0.05 across all careers (both IT
+and soft skills).
+
+A side-by-side comparison with the SAd adaptive threshold (Ogedengbe et
+al. 2024) is available at ``scripts/sad_minsup_analysis.py`` -- it shows
+why SAd does not fit this dataset (I ≈ 1000 makes R = 2^I − 1 overflow
+float, collapsing ω onto its upper clamp and starving the recommender of
+rules). See that script for the prof-facing demonstration.
+"""
 import pandas as pd
 import ast
-from collections import Counter
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 import pickle
 
 
-def compute_adaptive_minsup(transactions: list) -> float:
-    total_transactions = len(transactions)
-    if total_transactions == 0:
-        return 0.05  # fallback
+# Flat minimum support used by FP-Growth below. SAd attempted; not
+# applicable to our dataset shape -- see scripts/sad_minsup_analysis.py.
+MIN_SUPPORT = 0.05
 
-    item_counts = Counter(item for transaction in transactions for item in transaction)
-    total_items = len(item_counts)
-
-    if total_items == 0:
-        return 0.05  # fallback
-
-    # Step 1 & 2: support × utility(=1) per item
-    utilities = [count / total_transactions for count in item_counts.values()]
-    # Step 3: average utility
-    avesup = sum(utilities) / total_items
-    # Step 4: minsup = avesup / total_transactions
-    minsup = avesup / total_transactions
-
-    return max(0.05, min(0.2, minsup))
 
 # Step 1: Load cleaned data
 df = pd.read_csv("data/cleaned_jobs.csv")
@@ -45,10 +40,9 @@ for career in df['Query'].unique():
     te_array = te.fit_transform(filtered)
     encoded_df = pd.DataFrame(te_array, columns=te.columns_)
 
-    # Run FP-Growth with adaptive minimum support (Hikmawati et al. 2021)
-    adaptive_minsup = compute_adaptive_minsup(filtered)
-    frequent_itemsets = fpgrowth(encoded_df, min_support=adaptive_minsup, use_colnames=True)
-    print(f"  adaptive minsup: {adaptive_minsup:.4f}")
+    # FP-Growth with the flat MIN_SUPPORT (see module docstring).
+    frequent_itemsets = fpgrowth(encoded_df, min_support=MIN_SUPPORT, use_colnames=True)
+    print(f"  min_support: {MIN_SUPPORT:.2f}")
 
     # Skip if no frequent itemsets found
     if len(frequent_itemsets) == 0:
@@ -85,7 +79,6 @@ print("\nAll rules saved to data/arm_rules.pkl")
 print(f"Skill frequencies saved to data/arm_freq.pkl ({len(all_freq)} careers)")
 
 # Run FP-Growth on Soft Skills
-import ast
 df_soft = pd.read_csv("data/cleaned_soft_skills.csv")
 df_soft['Soft Skills'] = df_soft['Soft Skills'].apply(ast.literal_eval)
 
@@ -98,9 +91,8 @@ for career in df_soft['Query'].unique():
     te_array = te.fit_transform(filtered)
     encoded_df = pd.DataFrame(te_array, columns=te.columns_)
 
-    adaptive_minsup = compute_adaptive_minsup(filtered)
-    frequent_itemsets = fpgrowth(encoded_df, min_support=adaptive_minsup, use_colnames=True)
-    print(f"  adaptive minsup: {adaptive_minsup:.4f}")
+    frequent_itemsets = fpgrowth(encoded_df, min_support=MIN_SUPPORT, use_colnames=True)
+    print(f"  min_support: {MIN_SUPPORT:.2f}")
 
     if len(frequent_itemsets) == 0:
         continue
@@ -115,11 +107,9 @@ for career in df_soft['Query'].unique():
     rules = rules.sort_values('lift', ascending=False)
 
     all_soft_rules[career] = rules
-    print(f"Soft skills — '{career}': {len(rules)} rules generated")
+    print(f"Soft skills -- '{career}': {len(rules)} rules generated")
 
 with open('data/soft_rules.pkl', 'wb') as f:
     pickle.dump(all_soft_rules, f)
 
 print("Soft skill rules saved to data/soft_rules.pkl")
-
-
